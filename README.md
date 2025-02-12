@@ -1,6 +1,7 @@
-# Setup instructions
+# Motorway Tech Task 
 
 Please read the following steps for setup:
+
 #### Install dependencies and run build
 ```bash
 npm install
