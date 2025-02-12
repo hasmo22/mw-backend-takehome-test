@@ -1,53 +1,40 @@
-# Description
+# Setup instructions
 
-The Motorway backend take home code test. Please read the description and the brief carefully before starting the test.
-
-**There's no time limit so please take as long as you wish to complete the test, and to add/refactor as much as you think is needed to solve the brief. However, we recommend around 60 - 120 minutes as a general guide, if you run out of time, then don't worry.**
-
-**For anything that you did not get time to implement _or_ that you would like to change/add but you didn't feel was part of the brief, please feel free to make a note of it at the bottom of this README.md file**
-
-## Installation
-
+Please read the following steps for setup:
+#### Install dependencies and run build
 ```bash
-$ npm install
+npm install
+npm run build
 ```
 
-## Running the app
-
+#### Run db migrations
 ```bash
-# development (local)
-$ npm run dev
-
-# production mode (deployed)
-$ npm run start
+npm run migration:run
 ```
 
-## Test
-
+#### Start the app
 ```bash
-# run all tests
-$ npm run test
-
-# test coverage
-$ npm run test:coverage
+npm run start
 ```
 
-## Current Solution
+#### Notes
+Overall I really enjoyed the take home code test. I found the instructions clear and was able to complete the entire task brief. ✅
 
-This API is a simple but important API for motorway that is responsible for retrieving valuations for cars from a 3rd party (SuperCar Valuations) by the VRM (Vehicle Registration Mark) and mileage.
+- Added a failover mechanism to a new Valuation service, which has two (SuperCar and Premium) valuation providers injected in. It keeps a tab on the error rates as per the task brief requirement and failsover to the Premium valuation provider for a set amount of time before switching back.
+- Inorporated a check to see if an existing valuation exists, which is returned instead of making a duplicate request to providers, which saves costs.
+- Added logging, with a new model and service which respects provider SLAs stored in a provider_logs table.
+- Moved into a service approach and added to the directory structure with a /src/services dir.
+- Used DI, registering services in ```src/app.ts``` and extending types in ```types/fastify.d.ts``` 
+```bash
+  fastify.register(LoggingService);
+  fastify.register(SuperCarValuationProvider);
+  fastify.register(PremiumCarValuationProvider);
+  fastify.register(ValuationService);
+```
+- Tests are passing.
+- Added migrations for prod.
 
-- The API has two routes
-	- A PUT (/valuations/{vrm}) request to create a valuation for a vehicle which accepts a small amount of input data and performs some simple validation logic.
-	- A GET (/valuations/{vrm}) request to get an existing valuation. Returns 404 if no valuation for the vrm exists.
-
-- The PUT operation handles calling a third-party API to perform the actual valuation, there is some rudimentary mapping logic between Motorway & 3rd party requests/responses.
-- The PUT request is not truly idempotent so the 3rd party is called each time this operation is called and the code catches duplicate key exceptions when writing to the database.
-- If the 3rd party is unreachable or returns a 5xx error, the service returns a 500 Internal Server Error.
-- The outcome is stored in a database for future retrieval in the GET request.
-- All the logic for the entire operation is within a single method in a single "service" class.
-- A QA engineer has added some high-level tests.
-- The tests for validation failures all pass.
-- A simple happy path test is currently failing as the I/O calls for the database and 3rd party have not been isolated and the clients are trying to hit real resources with an invalid configuration.
+## Pre-existing sections below:
 
 ## Task Brief
 
@@ -116,39 +103,3 @@ This is the proposed fallback provider to be used for valuations, it is an old s
 The OpenAPI Specification can be found [here](http://localhost:3002/docs).
 
 The URI for this test stub in Mocky is https://run.mocky.io/v3/0dfda26a-3a5a-43e5-b68c-51f148eda473.
-
-
-# Candidate Notes
-Please read the following steps for setup:
-#### Install dependencies and run build
-```bash
-npm install
-npm run build
-```
-
-#### Run db migrations
-```bash
-npm run migration:run
-```
-
-#### Start the app
-```bash
-npm run start
-```
-
-#### Notes
-Overall I really enjoyed the take home code test. I found the instructions clear and was able to complete the entire task brief. ✅
-
-- Added a failover mechanism to a new Valuation service, which has two (SuperCar and Premium) valuation providers injected in. It keeps a tab on the error rates as per the task brief requirement and failsover to the Premium valuation provider for a set amount of time before switching back.
-- Inorporated a check to see if an existing valuation exists, which is returned instead of making a duplicate request to providers, which saves costs.
-- Added logging, with a new model and service which respects provider SLAs stored in a provider_logs table.
-- Moved into a service approach and added to the directory structure with a /src/services dir.
-- Used DI, registering services in ```src/app.ts``` and extending types in ```types/fastify.d.ts``` 
-```bash
-  fastify.register(LoggingService);
-  fastify.register(SuperCarValuationProvider);
-  fastify.register(PremiumCarValuationProvider);
-  fastify.register(ValuationService);
-```
-- Tests are passing.
-- Added migrations for prod.
